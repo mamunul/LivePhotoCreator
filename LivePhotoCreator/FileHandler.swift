@@ -11,7 +11,7 @@ class FileHandler {
     var filePath: URL?
 
     init() {
-        filePath = getDocumentsDirectory()
+        filePath = getDocumentsDirectory().appendingPathComponent("image.jpg")
     }
 
     private func getDocumentsDirectory() -> URL {

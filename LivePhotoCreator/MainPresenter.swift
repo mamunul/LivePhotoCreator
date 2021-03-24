@@ -14,8 +14,8 @@ class MainPresenter {
     private var filePath: URL?
 
     func generateLivePhoto(onCompletion: @escaping (PHLivePhoto?) -> Void) {
-        VideoConnverter().fetchPhotoFromLibrary { photo in
-//        VideoConnverter().convertToLive { photo in
+//        VideoConnverter().fetchPhotoFromLibrary { photo in
+        VideoConnverter().convertToLive { photo in
             onCompletion(photo)
         }
     }
