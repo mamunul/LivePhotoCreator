@@ -32,15 +32,15 @@ class VideoConnverter {
         let videoURL = Bundle.main.url(forResource: imageName, withExtension: "mov")!
         let identifier = UUID().uuidString
 
-        addMetadataToPhoto(photoURL: imageURL, assetIdentifier: identifier) { url in
-            print(url)
-        }
+        addMetadataToPhoto(photoURL: imageURL, assetIdentifier: identifier) { photoURL in
+            self.addMetadataToVideo(videoURL: videoURL, outputURL: self.fileHandler.videoFilePath!, identifier: identifier) { newVideoURL in
+                let urlList = [photoURL, newVideoURL]
 
-//        let urlList = [imageURL, videoURL]
-//
-//        PHLivePhoto.request(withResourceFileURLs: urlList, placeholderImage: placeHolderImage, targetSize: CGSize(width: 200, height: 200), contentMode: PHImageContentMode.aspectFit) { livephoto, _ in
-//            onCompletion(livephoto)
-//        }
+                PHLivePhoto.request(withResourceFileURLs: urlList, placeholderImage: placeHolderImage, targetSize: CGSize(width: 200, height: 400), contentMode: PHImageContentMode.aspectFit) { livephoto, _ in
+                    onCompletion(livephoto)
+                }
+            }
+        }
     }
 
     func fetchPhotoFromLibrary(onCompletion: @escaping (PHLivePhoto?) -> Void) {
@@ -100,7 +100,7 @@ class VideoConnverter {
         return input
     }
 
-    func addMetadataToVideo(videoURL: URL, outputFile: String, identifier: String) {
+    func addMetadataToVideo(videoURL: URL, outputURL: URL, identifier: String, onCompletion: @escaping (URL) -> Void) {
         let asset = AVAsset(url: videoURL)
         let reader = try? AVAssetReader(asset: asset)
 
@@ -108,23 +108,31 @@ class VideoConnverter {
         let item = createIdentifierMetadata(assetIdentifier: identifier)
         metadata.append(item)
 
-        let outputURL = fileHandler.filePath!
         let writer = try? AVAssetWriter(url: outputURL, fileType: AVFileType.mov)
         writer?.metadata = metadata
 
         let tracks: [AVAssetTrack] = asset.tracks
         for track in tracks {
-            var readerOutputSettings = [String: Any]()
-            var writerOuputSettings = [String: Any]()
+            var readerOutputSettings: [String: Any]?
+            var writerOuputSettings: [String: Any]?
             if track.mediaType == .audio {
-                readerOutputSettings = [AVFormatIDKey: kAudioFormatLinearPCM]
-                writerOuputSettings =
-                    [
-                        AVFormatIDKey: kAudioFormatMPEG4AAC,
-                        AVSampleRateKey: 44100,
-                        AVNumberOfChannelsKey: 2,
-                        AVEncoderBitRateKey: 128000,
-                    ]
+//                readerOutputSettings = [AVFormatIDKey: kAudioFormatLinearPCM]
+//                writerOuputSettings =
+//                    [
+//                        AVFormatIDKey: kAudioFormatMPEG4AAC,
+//                        AVSampleRateKey: 44100,
+//                        AVNumberOfChannelsKey: 2,
+//                        AVEncoderBitRateKey: 128000,
+//                    ]
+            } else if track.mediaType == .video {
+                readerOutputSettings = [kCVPixelBufferPixelFormatTypeKey as String:
+                    NSNumber(value: kCVPixelFormatType_32BGRA as UInt32)]
+
+                writerOuputSettings = [
+                    AVVideoCodecKey: AVVideoCodecType.h264 as AnyObject,
+                    AVVideoWidthKey: track.naturalSize.width as AnyObject,
+                    AVVideoHeightKey: track.naturalSize.height as AnyObject,
+                ]
             }
             let output = AVAssetReaderTrackOutput(track: track, outputSettings: readerOutputSettings)
             let input = AVAssetWriterInput(mediaType: track.mediaType, outputSettings: writerOuputSettings)
@@ -136,13 +144,13 @@ class VideoConnverter {
 
         let input2 = createStillImageTimeAssetWriterInput()
         let adaptor = AVAssetWriterInputMetadataAdaptor(assetWriterInput: input2!)
-        if writer!.canAdd(input2!) {
-            writer!.add(input2!)
+        if writer!.canAdd(adaptor.assetWriterInput) {
+            writer!.add(adaptor.assetWriterInput)
         }
 
+        reader?.startReading()
         writer?.startWriting()
         writer?.startSession(atSourceTime: CMTime.zero)
-        reader?.startReading()
 
         let timedItem = addStillImageTimeMetaDataToVideoFile(uuid: identifier)
         let timedRange = CMTimeRangeMake(start: CMTime.zero, duration: CMTimeMake(value: 1, timescale: 100))
@@ -161,6 +169,7 @@ class VideoConnverter {
         group.notify(queue: queue) {
             self.reader!.cancelReading()
             self.writer?.finishWriting {
+                onCompletion(outputURL)
             }
         }
     }
@@ -171,9 +180,21 @@ class VideoConnverter {
 
         input.requestMediaDataWhenReady(on: queue) {
             while input.isReadyForMoreMediaData {
-                if let buffer = output.copyNextSampleBuffer() {
-                    _ = input.append(buffer)
-                    NSLog("Track %d. Failed to append buffer.", trackIndex)
+                let status = self.reader!.status
+                if status == .reading {
+                    if let buffer = output.copyNextSampleBuffer() {
+                        print("ready:\(input.isReadyForMoreMediaData)")
+                        let status = input.append(buffer)
+                        NSLog("Track %d. Failed to append buffer.", trackIndex)
+                        if !status {
+                            print("leave track:\(trackIndex)")
+                            input.markAsFinished()
+                            self.group.leave()
+                            return
+                        }
+                    }
+                } else {
+                    print("leave track:\(trackIndex)")
                     input.markAsFinished()
                     self.group.leave()
                     return
@@ -186,8 +207,8 @@ class VideoConnverter {
         let image = UIImage(contentsOfFile: photoURL.path)
         let imageRef = image?.cgImage
         let imageMetadata = [kCGImagePropertyMakerAppleDictionary: ["17": assetIdentifier]]
-        
-        let cfurl = self.fileHandler.filePath! as CFURL
+
+        let cfurl = fileHandler.filePath! as CFURL
 
         let dest = CGImageDestinationCreateWithURL(cfurl, kUTTypeJPEG, 1, nil)
         CGImageDestinationAddImage(dest!, imageRef!, imageMetadata as CFDictionary)
