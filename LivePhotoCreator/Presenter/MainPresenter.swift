@@ -15,7 +15,7 @@ class MainPresenter {
 
     func generateLivePhoto(onCompletion: @escaping (PHLivePhoto?) -> Void) {
 //        VideoConnverter().fetchPhotoFromLibrary { photo in
-        VideoConnverter().convertToLive { photo in
+        VideoToLivePhotoConverter().convertToLive { photo in
             onCompletion(photo)
         }
     }
