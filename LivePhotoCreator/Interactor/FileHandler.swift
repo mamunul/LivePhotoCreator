@@ -8,19 +8,25 @@
 import Foundation
 
 class FileHandler {
-    var filePath: URL?
-    var videoFilePath: URL?
+    private(set) var imageFileUrl: URL?
+    private(set) var videoFileUrl: URL?
 
     init() {
-        filePath = getDocumentsDirectory().appendingPathComponent("image.jpg")
-        videoFilePath = getDocumentsDirectory().appendingPathComponent("video.mov")
+        imageFileUrl = getDocumentsDirectory().appendingPathComponent("image.jpg")
+        videoFileUrl = getDocumentsDirectory().appendingPathComponent("video.mov")
+    }
 
-        removeFile(at: filePath!)
-        removeFile(at: videoFilePath!)
+    func removeExistingFiles() {
+        removeFile(at: imageFileUrl!)
+        removeFile(at: videoFileUrl!)
     }
 
     private func removeFile(at url: URL) {
-        try? FileManager.default.removeItem(at: url)
+        do {
+            try FileManager.default.removeItem(at: url)
+        } catch {
+            print(error)
+        }
     }
 
     private func getDocumentsDirectory() -> URL {

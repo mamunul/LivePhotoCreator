@@ -30,7 +30,7 @@ class MediaWriter {
         }
     }
 
-    func addMetadataToVideo(videoURL: URL, outputURL: URL, identifier: String, onCompletion: @escaping (URL) -> Void) {
+    func addMetadataToVideo(videoURL: URL, outputURL: URL, identifier: String, onCompletion: @escaping () -> Void) {
         let asset = AVAsset(url: videoURL)
         var assetreader: AVAssetReader?
         var assetwriter: AVAssetWriter?
@@ -74,7 +74,7 @@ class MediaWriter {
         group.notify(queue: queue) {
             reader.cancelReading()
             writer.finishWriting {
-                onCompletion(outputURL)
+                onCompletion()
             }
         }
     }
