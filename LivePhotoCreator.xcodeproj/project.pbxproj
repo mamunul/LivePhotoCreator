@@ -7,10 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		B217D7AB260C902B00C3C92D /* MediaWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = B217D7AA260C902B00C3C92D /* MediaWriter.swift */; };
+		B217D7AB260C902B00C3C92D /* MediaReWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = B217D7AA260C902B00C3C92D /* MediaReWriter.swift */; };
 		B217D7B0260C904F00C3C92D /* VideoMetaDataFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = B217D7AF260C904F00C3C92D /* VideoMetaDataFactory.swift */; };
 		B217D7B5260C906800C3C92D /* MediaWriterFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = B217D7B4260C906800C3C92D /* MediaWriterFactory.swift */; };
 		B217D7BA260C908400C3C92D /* ImageMetaDataEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = B217D7B9260C908400C3C92D /* ImageMetaDataEditor.swift */; };
+		B2B5D771261201DF001EA315 /* WriterBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2B5D770261201DF001EA315 /* WriterBuilder.swift */; };
 		B2BDC9DB260A0D7B00DDC6BE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2BDC9DA260A0D7B00DDC6BE /* AppDelegate.swift */; };
 		B2BDC9DD260A0D7B00DDC6BE /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2BDC9DC260A0D7B00DDC6BE /* SceneDelegate.swift */; };
 		B2BDC9DF260A0D7B00DDC6BE /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2BDC9DE260A0D7B00DDC6BE /* ContentView.swift */; };
@@ -46,10 +47,11 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		B217D7AA260C902B00C3C92D /* MediaWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaWriter.swift; sourceTree = "<group>"; };
+		B217D7AA260C902B00C3C92D /* MediaReWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaReWriter.swift; sourceTree = "<group>"; };
 		B217D7AF260C904F00C3C92D /* VideoMetaDataFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoMetaDataFactory.swift; sourceTree = "<group>"; };
 		B217D7B4260C906800C3C92D /* MediaWriterFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaWriterFactory.swift; sourceTree = "<group>"; };
 		B217D7B9260C908400C3C92D /* ImageMetaDataEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageMetaDataEditor.swift; sourceTree = "<group>"; };
+		B2B5D770261201DF001EA315 /* WriterBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WriterBuilder.swift; sourceTree = "<group>"; };
 		B2BDC9D7260A0D7B00DDC6BE /* LivePhotoCreator.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LivePhotoCreator.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B2BDC9DA260A0D7B00DDC6BE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		B2BDC9DC260A0D7B00DDC6BE /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -103,10 +105,11 @@
 			children = (
 				B2BDCA32260A0F3000DDC6BE /* VideoToLivePhotoConverter.swift */,
 				B2BDCA3C260A0FDE00DDC6BE /* FileHandler.swift */,
-				B217D7AA260C902B00C3C92D /* MediaWriter.swift */,
+				B217D7AA260C902B00C3C92D /* MediaReWriter.swift */,
 				B217D7AF260C904F00C3C92D /* VideoMetaDataFactory.swift */,
 				B217D7B4260C906800C3C92D /* MediaWriterFactory.swift */,
 				B217D7B9260C908400C3C92D /* ImageMetaDataEditor.swift */,
+				B2B5D770261201DF001EA315 /* WriterBuilder.swift */,
 			);
 			path = Interactor;
 			sourceTree = "<group>";
@@ -343,13 +346,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B217D7AB260C902B00C3C92D /* MediaWriter.swift in Sources */,
+				B217D7AB260C902B00C3C92D /* MediaReWriter.swift in Sources */,
 				B2BDCA3D260A0FDE00DDC6BE /* FileHandler.swift in Sources */,
 				B2BDCA38260A0FA600DDC6BE /* MainPresenter.swift in Sources */,
 				B217D7B0260C904F00C3C92D /* VideoMetaDataFactory.swift in Sources */,
 				B2BDC9DB260A0D7B00DDC6BE /* AppDelegate.swift in Sources */,
 				B217D7BA260C908400C3C92D /* ImageMetaDataEditor.swift in Sources */,
 				B2BDC9DD260A0D7B00DDC6BE /* SceneDelegate.swift in Sources */,
+				B2B5D771261201DF001EA315 /* WriterBuilder.swift in Sources */,
 				B2BDCA33260A0F3100DDC6BE /* VideoToLivePhotoConverter.swift in Sources */,
 				B2BDC9DF260A0D7B00DDC6BE /* ContentView.swift in Sources */,
 				B217D7B5260C906800C3C92D /* MediaWriterFactory.swift in Sources */,
