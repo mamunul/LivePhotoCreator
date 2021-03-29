@@ -10,10 +10,9 @@ import Photos
 import UIKit
 
 class VideoToLivePhotoConverter {
-    let fileHandler = FileHandler()
-
-    let imageMetadataEditor = ImageMetaDataEditor()
-    let mediaWriter = MediaWriter()
+    private let fileHandler = FileHandler()
+    private let imageMetadataEditor = ImageMetaDataEditor()
+    private let mediaWriter = MediaWriter()
 
     private func makeLivephoto(placeHolderImage: UIImage?, _ urlList: [URL], onCompletion: @escaping (PHLivePhoto?) -> Void) {
         PHLivePhoto.request(
@@ -26,6 +25,38 @@ class VideoToLivePhotoConverter {
         }
     }
 
+    func convertVideoToLive(videoURL: URL, onCompletion: @escaping (PHLivePhoto?) -> Void) {
+        guard let thumbnailImage = getThumbOfVideo(fileURL: videoURL) else { return }
+
+        let identifier = UUID().uuidString
+
+        _ = imageMetadataEditor.addMetadataTo(image: thumbnailImage, assetIdentifier: identifier, outputURL: fileHandler.filePath!)
+        mediaWriter.addMetadataToVideo(
+            videoURL: videoURL,
+            outputURL: fileHandler.videoFilePath!,
+            identifier: identifier
+        ) { newVideoURL in
+            let urlList = [self.fileHandler.filePath!, newVideoURL]
+            self.makeLivephoto(placeHolderImage: thumbnailImage, urlList, onCompletion: onCompletion)
+        }
+    }
+
+    private func getThumbOfVideo(fileURL: URL) -> UIImage? {
+        let movieAsset = AVURLAsset(url: fileURL)
+        let assetImageGenerator = AVAssetImageGenerator(asset: movieAsset)
+        assetImageGenerator.appliesPreferredTrackTransform = true
+
+        var thumbnail: UIImage?
+        do {
+            let cgImage = try assetImageGenerator.copyCGImage(at: CMTimeMake(value: 0, timescale: 1000), actualTime: nil)
+            thumbnail = UIImage(cgImage: cgImage)
+        } catch {
+            print(error)
+        }
+
+        return thumbnail
+    }
+
     func convertToLive(onCompletion: @escaping (PHLivePhoto?) -> Void) {
         let imageName = "img2s"
         let placeHolderImage = UIImage(named: imageName)
@@ -34,7 +65,7 @@ class VideoToLivePhotoConverter {
         let videoURL = Bundle.main.url(forResource: imageName, withExtension: "mov")!
         let identifier = UUID().uuidString
 
-        _ = imageMetadataEditor.addMetadataToPhoto(photoURL: imageURL, assetIdentifier: identifier, outputURL: fileHandler.filePath!)
+        _ = imageMetadataEditor.addMetadataTo(photoURL: imageURL, assetIdentifier: identifier, outputURL: fileHandler.filePath!)
         mediaWriter.addMetadataToVideo(
             videoURL: videoURL,
             outputURL: fileHandler.videoFilePath!,
@@ -45,7 +76,7 @@ class VideoToLivePhotoConverter {
         }
     }
 
-    func fetchPhotoFromLibrary(onCompletion: @escaping (PHLivePhoto?) -> Void) {
+    func fetchLivePhotoFromLibrary(onCompletion: @escaping (PHLivePhoto?) -> Void) {
         let options = PHFetchOptions()
         options.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
 

@@ -9,15 +9,10 @@ import AVFoundation
 import Foundation
 
 class MediaWriter {
-    let kFigAppleMakerNote_AssetIdentifier = "17"
-    var session: AVAssetExportSession?
-    var asset: AVURLAsset?
-    var reader: AVAssetReader?
-    var writer: AVAssetWriter?
-    var queue = DispatchQueue(label: "test")
-    var group = DispatchGroup()
-    let videoMetadataEditor = VideoMetaDataEditor()
-    let writerFactory = MediaWriterFactory()
+    private var queue = DispatchQueue.global(qos: DispatchQoS.QoSClass.default)
+    private var group = DispatchGroup()
+    private let videoMetadataEditor = VideoMetaDataFactory()
+    private let writerFactory = MediaWriterFactory()
 
     fileprivate func setupReadingWritingForAllTrack(_ assetTracks: [AVAssetTrack], _ writer: AVAssetWriter?, _ reader: AVAssetReader?) {
         for track in assetTracks {
@@ -37,43 +32,48 @@ class MediaWriter {
 
     func addMetadataToVideo(videoURL: URL, outputURL: URL, identifier: String, onCompletion: @escaping (URL) -> Void) {
         let asset = AVAsset(url: videoURL)
-        let reader = try? AVAssetReader(asset: asset)
-        let writer = try? AVAssetWriter(url: outputURL, fileType: AVFileType.mov)
+        var assetreader: AVAssetReader?
+        var assetwriter: AVAssetWriter?
+
+        do {
+            assetreader = try AVAssetReader(asset: asset)
+            assetwriter = try AVAssetWriter(url: outputURL, fileType: AVFileType.mov)
+        } catch {
+            print(error)
+        }
+
+        guard let reader = assetreader, let writer = assetwriter else { return }
 
         var metadata: [AVMetadataItem] = asset.metadata
         let item = videoMetadataEditor.makeIdentifierMetadata(assetIdentifier: identifier)
         metadata.append(item)
-        writer?.metadata = metadata
+        writer.metadata = metadata
 
         setupReadingWritingForAllTrack(asset.tracks, writer, reader)
 
-        let input2 = writerFactory.makeMetadatWriterInput()
-        let adaptor = AVAssetWriterInputMetadataAdaptor(assetWriterInput: input2!)
-        if writer!.canAdd(adaptor.assetWriterInput) {
-            writer!.add(adaptor.assetWriterInput)
+        let input = writerFactory.makeMetadatWriterInput()
+        let adaptor = AVAssetWriterInputMetadataAdaptor(assetWriterInput: input!)
+        if writer.canAdd(adaptor.assetWriterInput) {
+            writer.add(adaptor.assetWriterInput)
         }
 
-        reader?.startReading()
-        writer?.startWriting()
-        writer?.startSession(atSourceTime: CMTime.zero)
+        reader.startReading()
+        writer.startWriting()
+        writer.startSession(atSourceTime: CMTime.zero)
 
         let timedItem = videoMetadataEditor.makeStillImageTimeMetaData()
         let timedRange = CMTimeRangeMake(start: CMTime.zero, duration: CMTimeMake(value: 1, timescale: 100))
         let timedMetadataGroup = AVTimedMetadataGroup(items: [timedItem], timeRange: timedRange)
         adaptor.append(timedMetadataGroup)
-        //
-        self.reader = reader
-        self.writer = writer
-        queue = DispatchQueue.global(qos: DispatchQoS.QoSClass.default)
-        group = DispatchGroup()
-        for i in 0 ..< reader!.outputs.count {
+        
+        for i in 0 ..< reader.outputs.count {
             group.enter()
-            writeTrack(trackIndex: i)
+            writeTrack(output: reader.outputs[i], input: writer.inputs[i], reader: reader)
         }
 
         group.notify(queue: queue) {
-            self.reader!.cancelReading()
-            self.writer?.finishWriting {
+            reader.cancelReading()
+            writer.finishWriting {
                 onCompletion(outputURL)
             }
         }
@@ -91,13 +91,10 @@ class MediaWriter {
         }
     }
 
-    func writeTrack(trackIndex: Int) {
-        let output = reader!.outputs[trackIndex]
-        let input = writer!.inputs[trackIndex]
-
+    func writeTrack(output: AVAssetReaderOutput, input: AVAssetWriterInput, reader: AVAssetReader) {
         input.requestMediaDataWhenReady(on: queue) {
             while input.isReadyForMoreMediaData {
-                if self.reader!.status != .reading {
+                if reader.status != .reading {
                     input.markAsFinished()
                     self.group.leave()
                     break

@@ -8,7 +8,7 @@
 import AVFoundation
 import Foundation
 
-class VideoMetaDataEditor {
+class VideoMetaDataFactory {
     func makeIdentifierMetadata(assetIdentifier: String) -> AVMutableMetadataItem {
         let metadata = AVMutableMetadataItem()
         metadata.keySpace = AVMetadataKeySpace.quickTimeMetadata

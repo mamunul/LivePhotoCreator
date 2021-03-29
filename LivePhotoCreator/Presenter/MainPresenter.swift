@@ -10,13 +10,25 @@ import Photos
 
 class MainPresenter {
     let fileHandler = FileHandler()
+    let videoConverter = VideoToLivePhotoConverter()
 
     private var filePath: URL?
 
     func generateLivePhoto(onCompletion: @escaping (PHLivePhoto?) -> Void) {
-//        VideoConnverter().fetchPhotoFromLibrary { photo in
-        VideoToLivePhotoConverter().convertToLive { photo in
-            onCompletion(photo)
+        let imageName = "img2s"
+        let videoURL = Bundle.main.url(forResource: imageName, withExtension: "mov")!
+        videoConverter.convertVideoToLive(videoURL: videoURL) { photo in
+            if photo != nil {
+                onCompletion(photo!)
+            }
+        }
+    }
+
+    func showLivePhotoFromLibrary(onCompletion: @escaping (PHLivePhoto?) -> Void) {
+        videoConverter.fetchLivePhotoFromLibrary { photo in
+            if photo != nil {
+                onCompletion(photo!)
+            }
         }
     }
 }

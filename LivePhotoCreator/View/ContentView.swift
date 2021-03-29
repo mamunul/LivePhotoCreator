@@ -8,12 +8,12 @@ import SwiftUI
 
 struct LivePhotoView: UIViewRepresentable {
     @Binding var livePhoto: PHLivePhoto?
-    
+
     func makeUIView(context: Context) -> PHLivePhotoView {
         let liveView = PHLivePhotoView()
         return liveView
     }
-    
+
     func updateUIView(_ lpView: PHLivePhotoView, context: Context) {
         lpView.livePhoto = livePhoto
     }
@@ -33,16 +33,25 @@ struct ContentView: View {
     @State var livePhoto: PHLivePhoto?
     var body: some View {
         VStack {
+            Text("Live Photo Viewer").padding()
             Button {
                 presenter.generateLivePhoto { photo in
-                    if photo != nil {
-                        livePhoto = photo!
+                        livePhoto = photo
                         showLivePhoto = true
-                    }
+                }
+
+            } label: {
+                Text("Generate from Video and Show").padding()
+            }
+            
+            Button {
+                presenter.showLivePhotoFromLibrary { photo in
+                        livePhoto = photo
+                        showLivePhoto = true
                 }
                 
             } label: {
-                Text("showLivePhoto").padding()
+                Text("Show from Library").padding()
             }
         }
         .sheet(isPresented: $showLivePhoto) {
