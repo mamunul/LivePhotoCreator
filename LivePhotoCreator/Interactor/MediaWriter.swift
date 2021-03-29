@@ -79,13 +79,13 @@ class MediaWriter {
         }
     }
 
-    func addReaderOutput(_ output: AVAssetReaderTrackOutput, to reader: AVAssetReader) {
+    private func addReaderOutput(_ output: AVAssetReaderTrackOutput, to reader: AVAssetReader) {
         if reader.canAdd(output) {
             reader.add(output)
         }
     }
 
-    func addWriterInput(_ input: AVAssetWriterInput, to writer: AVAssetWriter) {
+    private func addWriterInput(_ input: AVAssetWriterInput, to writer: AVAssetWriter) {
         if writer.canAdd(input) {
             writer.add(input)
         }
@@ -99,7 +99,7 @@ class MediaWriter {
                     self.group.leave()
                     break
                 }
-                guard let buffer = output.copyNextSampleBuffer() else { return }
+                guard let buffer = output.copyNextSampleBuffer() else { continue }
                 if !input.append(buffer) {
                     input.markAsFinished()
                     self.group.leave()
