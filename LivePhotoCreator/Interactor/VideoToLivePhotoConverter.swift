@@ -12,7 +12,11 @@ import UIKit
 class VideoToLivePhotoConverter {
     private let fileHandler = FileHandler()
     private let imageMetadataEditor = ImageMetaDataEditor()
-    private let mediaWriter = MediaWriter()
+
+    private let builder = WriterBuilder()
+
+    init() {
+    }
 
     private func makeLivephoto(placeHolderImage: UIImage?, _ urlList: [URL], onCompletion: @escaping (PHLivePhoto?) -> Void) {
         PHLivePhoto.request(
@@ -27,21 +31,20 @@ class VideoToLivePhotoConverter {
 
     func convertVideoToLive(videoURL: URL, onCompletion: @escaping (PHLivePhoto?) -> Void) {
         guard let thumbnailImage = getThumbOfVideo(fileURL: videoURL) else { return }
-        
-        fileHandler.removeExistingFiles()
 
         let identifier = UUID().uuidString
+
+        fileHandler.removeExistingFiles()
+
+        let mediaWriter = builder.build(videoURL: videoURL, outputURL: fileHandler.videoFileUrl!, identifier: identifier)
 
         _ = imageMetadataEditor.addMetadataTo(
             image: thumbnailImage,
             assetIdentifier: identifier,
             outputURL: fileHandler.imageFileUrl!
         )
-        mediaWriter.addMetadataToVideo(
-            videoURL: videoURL,
-            outputURL: fileHandler.videoFileUrl!,
-            identifier: identifier
-        ) { [self] in
+
+        mediaWriter?.start { [self] in
             let urlList = [fileHandler.imageFileUrl!, fileHandler.videoFileUrl!]
             self.makeLivephoto(placeHolderImage: thumbnailImage, urlList, onCompletion: onCompletion)
         }
@@ -70,19 +73,17 @@ class VideoToLivePhotoConverter {
         let imageURL = Bundle.main.url(forResource: imageName, withExtension: "jpg")!
         let videoURL = Bundle.main.url(forResource: imageName, withExtension: "mov")!
         let identifier = UUID().uuidString
-        
+
         fileHandler.removeExistingFiles()
+
+        let mediaWriter = builder.build(videoURL: videoURL, outputURL: fileHandler.videoFileUrl!, identifier: identifier)
 
         _ = imageMetadataEditor.addMetadataTo(
             imageURL: imageURL,
             assetIdentifier: identifier,
             outputURL: fileHandler.imageFileUrl!
         )
-        mediaWriter.addMetadataToVideo(
-            videoURL: videoURL,
-            outputURL: fileHandler.videoFileUrl!,
-            identifier: identifier
-        ) { [self] in
+        mediaWriter?.start { [self] in
             let urlList = [fileHandler.imageFileUrl!, fileHandler.videoFileUrl!]
             self.makeLivephoto(placeHolderImage: placeHolderImage, urlList, onCompletion: onCompletion)
         }
